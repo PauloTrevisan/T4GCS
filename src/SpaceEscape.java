@@ -57,6 +57,7 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
     private Rectangle playerRect;
     private int playerSpeed = 7;
     private ArrayList<Rectangle> meteorList;
+    private ArrayList<Integer> meteorSpeeds; // lista para variar a velocidade dos meteoros
     private int meteorSpeed = 5;
     private int score = 0;
     private int lives = 3;
@@ -87,10 +88,12 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
 
         // Inicializa meteoros
         meteorList = new ArrayList<>();
+        meteorSpeeds = new ArrayList<>(); // inicializa as velocidades
         for (int i = 0; i < 5; i++) {
             int x = random.nextInt(WIDTH - 40);
             int y = random.nextInt(500) - 500;
             meteorList.add(new Rectangle(x, y, 40, 40));
+            meteorSpeeds.add(random.nextInt(10) + meteorSpeed); // randomiza as velocidades
         }
 
         // Inicia música de fundo
@@ -209,13 +212,16 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
         }
 
         // Movimento dos meteoros
-        for (Rectangle meteor : meteorList) {
-            meteor.y += meteorSpeed;
+        for (int i = 0; i < meteorList.size(); i++) { // for alterado para as novas velocidades
+            Rectangle meteor = meteorList.get(i);
+            int speed = meteorSpeeds.get(i);
+            meteor.y += speed;
 
             // Saiu da tela
             if (meteor.y > HEIGHT) {
                 meteor.y = random.nextInt(60) - 100;
                 meteor.x = random.nextInt(WIDTH - meteor.width);
+                meteorSpeeds.set(i, random.nextInt(10) + meteorSpeed); // nova linha para setar velocidades
                 score++;
                 playSound(soundPoint);
             }
