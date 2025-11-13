@@ -34,6 +34,7 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
     private static final String ASSET_BACKGROUND = "fundo_espacial.png";
     private static final String ASSET_PLAYER = "nave001.png";
     private static final String ASSET_METEOR = "meteoro001.png";
+    private static final String ASSET_METEOR_LIFE = "meteoro_vida.png"; // novo meteoro que da vida
     private static final String ASSET_SOUND_POINT = "classic-game-action-positive-5-224402.wav";
     private static final String ASSET_SOUND_HIT = "stab-f-01-brvhrtz-224599.wav";
     private static final String ASSET_MUSIC = "distorted-future-363866.wav";
@@ -47,6 +48,7 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
     private BufferedImage background;
     private BufferedImage playerImg;
     private BufferedImage meteorImg;
+    private BufferedImage meteorLifeImg;
 
     // Sons
     private Clip soundPoint;
@@ -57,7 +59,8 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
     private Rectangle playerRect;
     private int playerSpeed = 7;
     private ArrayList<Rectangle> meteorList;
-    private ArrayList<Integer> meteorSpeeds; // lista para variar a velocidade dos meteoros
+    private ArrayList<Integer> meteorSpeeds;// lista para variar a velocidade dos meteoros
+    private ArrayList<Boolean> meteorIsLife;
     private int meteorSpeed = 5;
     private int score = 0;
     private int lives = 3;
@@ -89,11 +92,14 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
         // Inicializa meteoros
         meteorList = new ArrayList<>();
         meteorSpeeds = new ArrayList<>(); // inicializa as velocidades
+        meteorIsLife = new ArrayList<>();
+
         for (int i = 0; i < 5; i++) {
             int x = random.nextInt(WIDTH - 40);
             int y = random.nextInt(500) - 500;
             meteorList.add(new Rectangle(x, y, 40, 40));
             meteorSpeeds.add(random.nextInt(10) + meteorSpeed); // randomiza as velocidades
+            meteorIsLife.add(false);
         }
 
         // Inicia música de fundo
@@ -109,6 +115,7 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
         background = loadImage(ASSET_BACKGROUND, WHITE, WIDTH, HEIGHT);
         playerImg = loadImage(ASSET_PLAYER, BLUE, 80, 60);
         meteorImg = loadImage(ASSET_METEOR, RED, 40, 40);
+        meteorLifeImg = loadImage(ASSET_METEOR_LIFE, Color.GREEN, 40, 40);
 
         // Carrega sons
         soundPoint = loadSound(ASSET_SOUND_POINT);
@@ -225,31 +232,55 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
         // ============================================
 
         // Movimento dos meteoros
-        for (int i = 0; i < meteorList.size(); i++) { // for alterado para as novas velocidades
+        for (int i = 0; i < meteorList.size(); i++) {
             Rectangle meteor = meteorList.get(i);
-            int speed = meteorSpeeds.get(i);
+            int speed = meteorSpeeds.get(i);      // VELOCIDADE (Mantém)
+            boolean isLife = meteorIsLife.get(i); // VIDA (Novo)
+
             meteor.y += speed;
 
             // Saiu da tela
             if (meteor.y > HEIGHT) {
                 meteor.y = random.nextInt(60) - 100;
                 meteor.x = random.nextInt(WIDTH - meteor.width);
-                meteorSpeeds.set(i, random.nextInt(10) + meteorSpeed); // nova linha para setar velocidades
-                score++;
-                playSound(soundPoint);
+
+                // Reseta Velocidade
+                meteorSpeeds.set(i, random.nextInt(10) + meteorSpeed);
+
+                // Sorteia Vida Extra (10% chance)
+                if (random.nextInt(100) < 10) {
+                    meteorIsLife.set(i, true);
+                } else {
+                    meteorIsLife.set(i, false);
+                }
+
+                if (!isLife) {
+                    score++;
+                    playSound(soundPoint);
+                }
             }
 
             // Colisão
             if (meteor.intersects(playerRect)) {
-                lives--;
                 meteor.y = random.nextInt(60) - 100;
                 meteor.x = random.nextInt(WIDTH - meteor.width);
-                playSound(soundHit);
 
-                if (lives <= 0) {
-                    running = false;
-                    gameOver = true;
-                    if (music != null) music.stop();
+                meteorSpeeds.set(i, random.nextInt(10) + meteorSpeed);
+
+                if (isLife) {
+                    lives++; // GANHA VIDA
+                    playSound(soundPoint);
+                    meteorIsLife.set(i, false);
+                } else {
+                    lives--; // PERDE VIDA
+                    playSound(soundHit);
+                    meteorIsLife.set(i, false);
+
+                    if (lives <= 0) {
+                        running = false;
+                        gameOver = true;
+                        if (music != null) music.stop();
+                    }
                 }
             }
         }
@@ -279,8 +310,14 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
             }
 
             // Desenha meteoros
-            for (Rectangle meteor : meteorList) {
-                g2d.drawImage(meteorImg, meteor.x, meteor.y, null);
+            for (int i = 0; i < meteorList.size(); i++) {
+                Rectangle meteor = meteorList.get(i);
+
+                if (meteorIsLife.get(i)) {
+                    g2d.drawImage(meteorLifeImg, meteor.x, meteor.y, null);
+                } else {
+                    g2d.drawImage(meteorImg, meteor.x, meteor.y, null);
+                }
             }
 
             // Desenha pontuação e vidas
