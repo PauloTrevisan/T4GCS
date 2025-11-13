@@ -204,12 +204,25 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
         if (!running) return;
 
         // Movimento do jogador
-        if (leftPressed && playerRect.x > 0) {
+        if (leftPressed) {
             playerRect.x -= playerSpeed;
         }
-        if (rightPressed && playerRect.x + playerRect.width < WIDTH) {
+        if (rightPressed) {
             playerRect.x += playerSpeed;
         }
+
+        // ============================================
+        // WRAPAROUND - Teleporte nas bordas
+        // ============================================
+        // Se sair pela direita, aparece na esquerda
+        if (playerRect.x >= WIDTH) {
+            playerRect.x = -playerRect.width + 1;
+        }
+        // Se sair pela esquerda, aparece na direita
+        else if (playerRect.x + playerRect.width <= 0) {
+            playerRect.x = WIDTH - 1;
+        }
+        // ============================================
 
         // Movimento dos meteoros
         for (int i = 0; i < meteorList.size(); i++) { // for alterado para as novas velocidades
@@ -253,8 +266,17 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
             // Desenha fundo
             g2d.drawImage(background, 0, 0, null);
 
-            // Desenha jogador
+            // Desenha jogador (com wraparound visual)
             g2d.drawImage(playerImg, playerRect.x, playerRect.y, null);
+
+            // Se a nave está saindo pela direita, desenha a parte que aparece na esquerda
+            if (playerRect.x + playerRect.width > WIDTH) {
+                g2d.drawImage(playerImg, playerRect.x - WIDTH, playerRect.y, null);
+            }
+            // Se a nave está saindo pela esquerda, desenha a parte que aparece na direita
+            else if (playerRect.x < 0) {
+                g2d.drawImage(playerImg, playerRect.x + WIDTH, playerRect.y, null);
+            }
 
             // Desenha meteoros
             for (Rectangle meteor : meteorList) {
