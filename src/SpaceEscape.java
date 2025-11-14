@@ -70,6 +70,8 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
     // Controles
     private boolean leftPressed = false;
     private boolean rightPressed = false;
+    private boolean upPressed = false;
+    private boolean downPressed = false;
 
     // Timer
     private Timer timer;
@@ -210,12 +212,20 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
     public void actionPerformed(ActionEvent e) {
         if (!running) return;
 
-        // Movimento do jogador
+        // Movimento do jogador (horizontal)
         if (leftPressed && playerRect.x > 0) {
             playerRect.x -= playerSpeed;
         }
         if (rightPressed && playerRect.x + playerRect.width < WIDTH) {
             playerRect.x += playerSpeed;
+        }
+
+        // Movimento do jogador (vertical)
+        if (upPressed && playerRect.y > 0) {
+            playerRect.y -= playerSpeed;
+        }
+        if (downPressed && playerRect.y + playerRect.height < HEIGHT) {
+            playerRect.y += playerSpeed;
         }
 
         // Movimento dos meteoros
@@ -334,6 +344,12 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
         if (key == KeyEvent.VK_RIGHT) {
             rightPressed = true;
         }
+        if (key == KeyEvent.VK_UP) {
+            upPressed = true;
+        }
+        if (key == KeyEvent.VK_DOWN) {
+            downPressed = true;
+        }
     }
 
     @Override
@@ -344,6 +360,12 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
         }
         if (key == KeyEvent.VK_RIGHT) {
             rightPressed = false;
+        }
+        if (key == KeyEvent.VK_UP) {
+            upPressed = false;
+        }
+        if (key == KeyEvent.VK_DOWN) {
+            downPressed = false;
         }
     }
 
