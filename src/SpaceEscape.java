@@ -36,6 +36,9 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
     private static final String ASSET_METEOR = "meteoro001.png";
     private static final String ASSET_METEOR_LIFE = "meteoro_vida.png";
     private static final String ASSET_METEOR_DANGER = "meteoro_perigo.png";
+    private static final String ASSET_METEOR_F2 = "meteoro001_F2.png";
+    private static final String ASSET_METEOR_LIFE_F2 = "meteoro_vida_F2.png";
+    private static final String ASSET_METEOR_DANGER_F2 = "meteoro_perigo_F2.png";
     private static final String ASSET_SOUND_POINT = "classic-game-action-positive-5-224402.wav";
     private static final String ASSET_SOUND_HIT = "stab-f-01-brvhrtz-224599.wav";
     private static final String ASSET_MUSIC = "distorted-future-363866.wav";
@@ -51,6 +54,9 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
     private BufferedImage meteorImg;
     private BufferedImage meteorLifeImg;
     private BufferedImage meteorDangerImg;
+    private BufferedImage meteorImg_F2;
+    private BufferedImage meteorLifeImg_F2;
+    private BufferedImage meteorDangerImg_F2;
 
     // Sons
     private Clip soundPoint;
@@ -75,6 +81,9 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
     private boolean introScreen = true;
     private boolean victory = false;
     private static final int SCORE_TO_WIN = 100;
+    private int animationFrameCounter = 0;
+    private static final int ANIMATION_SPEED = 60;
+    private boolean showFrameOne = true;
 
     // Controles
     private boolean leftPressed = false;
@@ -129,6 +138,10 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
         meteorImg = loadImage(ASSET_METEOR, RED, 40, 40);
         meteorLifeImg = loadImage(ASSET_METEOR_LIFE, Color.GREEN, 40, 40);
         meteorDangerImg = loadImage(ASSET_METEOR_DANGER, Color.DARK_GRAY, meteorDangerWidth, meteorDangerHeight);
+        meteorImg_F2 = loadImage(ASSET_METEOR_F2, RED.darker(), 40, 40);
+        meteorLifeImg_F2 = loadImage(ASSET_METEOR_LIFE_F2, Color.GREEN.darker(), 40, 40);
+        meteorDangerImg_F2 = loadImage(ASSET_METEOR_DANGER_F2, Color.DARK_GRAY.darker(), meteorDangerWidth, meteorDangerHeight);
+
 
         // Carrega sons
         soundPoint = loadSound(ASSET_SOUND_POINT);
@@ -318,6 +331,12 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
                     if (music != null) music.stop();
                 }
             }
+
+            animationFrameCounter++;
+            if (animationFrameCounter > ANIMATION_SPEED) {
+                animationFrameCounter = 0;
+                showFrameOne = !showFrameOne;
+            }
         }
 
         repaint();
@@ -340,7 +359,7 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
             FontMetrics fm = g2d.getFontMetrics(); // Pega métricas da fonte
             int x1 = (WIDTH - fm.stringWidth(title)) / 2; // Centraliza
             g2d.drawString(title, x1, HEIGHT / 2 - 50);
-          
+
             g2d.setFont(new Font("Arial", Font.PLAIN, 24));
             String subtitle = "Pressione ENTER para iniciar";
             fm = g2d.getFontMetrics(); // Pega métricas da fonte nova
@@ -379,16 +398,28 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
             g2d.drawImage(playerImg, playerRect.x, playerRect.y, null);
 
             // Desenha meteoros (a lógica complexa de tipos está na main)
-            for (int i = 0; i < meteorList.size(); i++) { // <-- CORRIGIDO: Usa índice 'i'
+            for (int i = 0; i < meteorList.size(); i++) {
                 Rectangle meteor = meteorList.get(i);
 
-                // Decide qual imagem desenhar
-                if (meteorIsDanger.get(i)) {
-                    g2d.drawImage(meteorDangerImg, meteor.x, meteor.y, null);
-                } else if (meteorIsLife.get(i)) {
-                    g2d.drawImage(meteorLifeImg, meteor.x, meteor.y, null);
+                // Decide qual frame (1 ou 2) e qual tipo (normal, vida, perigo) desenhar
+                if (showFrameOne) {
+                    // --- Mostra o Frame 1 ---
+                    if (meteorIsDanger.get(i)) {
+                        g2d.drawImage(meteorDangerImg, meteor.x, meteor.y, null);
+                    } else if (meteorIsLife.get(i)) {
+                        g2d.drawImage(meteorLifeImg, meteor.x, meteor.y, null);
+                    } else {
+                        g2d.drawImage(meteorImg, meteor.x, meteor.y, null);
+                    }
                 } else {
-                    g2d.drawImage(meteorImg, meteor.x, meteor.y, null);
+                    // --- Mostra o Frame 2 ---
+                    if (meteorIsDanger.get(i)) {
+                        g2d.drawImage(meteorDangerImg_F2, meteor.x, meteor.y, null);
+                    } else if (meteorIsLife.get(i)) {
+                        g2d.drawImage(meteorLifeImg_F2, meteor.x, meteor.y, null);
+                    } else {
+                        g2d.drawImage(meteorImg_F2, meteor.x, meteor.y, null);
+                    }
                 }
             }
 
