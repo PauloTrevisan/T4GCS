@@ -398,6 +398,9 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
             g2d.drawString("Pontos: " + score + "   Vidas: " + lives, 10, 30);
         }
     }
+    /*fve
+    vekdnc
+    e*/
 
     @Override
     public void keyPressed(KeyEvent e) {
