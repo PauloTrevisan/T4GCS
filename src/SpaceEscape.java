@@ -34,7 +34,8 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
     private static final String ASSET_BACKGROUND = "fundo_espacial.png";
     private static final String ASSET_PLAYER = "nave001.png";
     private static final String ASSET_METEOR = "meteoro001.png";
-    private static final String ASSET_METEOR_LIFE = "meteoro_vida.png"; // novo meteoro que da vida
+    private static final String ASSET_METEOR_LIFE = "meteoro_vida.png";
+    private static final String ASSET_METEOR_DANGER = "meteoro_perigo.png";
     private static final String ASSET_SOUND_POINT = "classic-game-action-positive-5-224402.wav";
     private static final String ASSET_SOUND_HIT = "stab-f-01-brvhrtz-224599.wav";
     private static final String ASSET_MUSIC = "distorted-future-363866.wav";
@@ -49,6 +50,7 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
     private BufferedImage playerImg;
     private BufferedImage meteorImg;
     private BufferedImage meteorLifeImg;
+    private BufferedImage meteorDangerImg;
 
     // Sons
     private Clip soundPoint;
@@ -59,9 +61,13 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
     private Rectangle playerRect;
     private int playerSpeed = 7;
     private ArrayList<Rectangle> meteorList;
-    private ArrayList<Integer> meteorSpeeds;// lista para variar a velocidade dos meteoros
+    private ArrayList<Integer> meteorSpeeds;
     private ArrayList<Boolean> meteorIsLife;
+    private ArrayList<Boolean> meteorIsDanger;
     private int meteorSpeed = 5;
+    private int meteorDangerSpeed = 5;
+    private int meteorDangerWidth = 60;
+    private int meteorDangerHeight = 60;
     private int score = 0;
     private int lives = 3;
     private boolean running = true;
@@ -71,6 +77,8 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
     // Controles
     private boolean leftPressed = false;
     private boolean rightPressed = false;
+    private boolean upPressed = false;
+    private boolean downPressed = false;
 
     // Timer
     private Timer timer;
@@ -92,15 +100,17 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
 
         // Inicializa meteoros
         meteorList = new ArrayList<>();
-        meteorSpeeds = new ArrayList<>(); // inicializa as velocidades
+        meteorSpeeds = new ArrayList<>();
         meteorIsLife = new ArrayList<>();
+        meteorIsDanger = new ArrayList<>();
 
         for (int i = 0; i < 5; i++) {
             int x = random.nextInt(WIDTH - 40);
             int y = random.nextInt(500) - 500;
             meteorList.add(new Rectangle(x, y, 40, 40));
-            meteorSpeeds.add(random.nextInt(10) + meteorSpeed); // randomiza as velocidades
+            meteorSpeeds.add(random.nextInt(7) + meteorSpeed); // randomiza as velocidades
             meteorIsLife.add(false);
+            meteorIsDanger.add(false);
         }
 
         // Inicia música de fundo
@@ -116,6 +126,7 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
         playerImg = loadImage(ASSET_PLAYER, BLUE, 80, 60);
         meteorImg = loadImage(ASSET_METEOR, RED, 40, 40);
         meteorLifeImg = loadImage(ASSET_METEOR_LIFE, Color.GREEN, 40, 40);
+        meteorDangerImg = loadImage(ASSET_METEOR_DANGER, Color.DARK_GRAY, meteorDangerWidth, meteorDangerHeight);
 
         // Carrega sons
         soundPoint = loadSound(ASSET_SOUND_POINT);
@@ -210,7 +221,7 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
     public void actionPerformed(ActionEvent e) {
         if (introScreen || gameOver || !running) return;
 
-        // Movimento do jogador
+        // Movimento do jogador (horizontal)
         if (leftPressed && playerRect.x > 0) {
             playerRect.x -= playerSpeed;
         }
@@ -218,29 +229,52 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
             playerRect.x += playerSpeed;
         }
 
+        // Movimento do jogador (vertical)
+        if (upPressed && playerRect.y > 0) {
+            playerRect.y -= playerSpeed;
+        }
+        if (downPressed && playerRect.y + playerRect.height < HEIGHT) {
+            playerRect.y += playerSpeed;
+        }
+
         // Movimento dos meteoros
         for (int i = 0; i < meteorList.size(); i++) {
             Rectangle meteor = meteorList.get(i);
-            int speed = meteorSpeeds.get(i);      // VELOCIDADE (Mantém)
-            boolean isLife = meteorIsLife.get(i); // VIDA (Novo)
+            int speed = meteorSpeeds.get(i);
+            boolean isLife = meteorIsLife.get(i);
+            boolean isDanger = meteorIsDanger.get(i);
 
-            meteor.y += speed;
+            // Ajusta velocidade e tamanho
+            if (isDanger) {
+                meteor.y += meteorDangerSpeed;
+                meteor.width = meteorDangerWidth;
+                meteor.height = meteorDangerHeight;
+            } else {
+                meteor.y += speed;
+                meteor.width = 40;
+                meteor.height = 40;
+            }
 
             // Saiu da tela
             if (meteor.y > HEIGHT) {
                 meteor.y = random.nextInt(60) - 100;
                 meteor.x = random.nextInt(WIDTH - meteor.width);
+                meteorSpeeds.set(i, random.nextInt(7) + meteorSpeed);
 
-                // Reseta Velocidade
-                meteorSpeeds.set(i, random.nextInt(10) + meteorSpeed);
-
-                // Sorteia Vida Extra (10% chance)
-                if (random.nextInt(100) < 10) {
+                // Sorteia o tipo (8% perigo, 10% vida, 82% normal)
+                int chance = random.nextInt(100);
+                if (chance < 8) {
+                    meteorIsDanger.set(i, true);
+                    meteorIsLife.set(i, false);
+                } else if (chance < 18) {
+                    meteorIsDanger.set(i, false);
                     meteorIsLife.set(i, true);
                 } else {
+                    meteorIsDanger.set(i, false);
                     meteorIsLife.set(i, false);
                 }
 
+                // Só ganha ponto se desviou de meteoro normal ou perigoso
                 if (!isLife) {
                     score++;
                     playSound(soundPoint);
@@ -251,23 +285,27 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
             if (meteor.intersects(playerRect)) {
                 meteor.y = random.nextInt(60) - 100;
                 meteor.x = random.nextInt(WIDTH - meteor.width);
+                meteorSpeeds.set(i, random.nextInt(7) + meteorSpeed);
 
-                meteorSpeeds.set(i, random.nextInt(10) + meteorSpeed);
+                // Reseta tipo
+                meteorIsLife.set(i, false);
+                meteorIsDanger.set(i, false);
 
                 if (isLife) {
-                    lives++; // GANHA VIDA
+                    lives++;
                     playSound(soundPoint);
-                    meteorIsLife.set(i, false);
-                } else {
-                    lives--; // PERDE VIDA
+                } else if (isDanger) {
+                    lives -= 2;
                     playSound(soundHit);
-                    meteorIsLife.set(i, false);
+                } else {
+                    lives--;
+                    playSound(soundHit);
+                }
 
-                    if (lives <= 0) {
-                        running = false;
-                        gameOver = true;
-                        if (music != null) music.stop();
-                    }
+                if (lives <= 0) {
+                    running = false;
+                    gameOver = true;
+                    if (music != null) music.stop();
                 }
             }
         }
@@ -292,7 +330,7 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
             FontMetrics fm = g2d.getFontMetrics(); // Pega métricas da fonte
             int x1 = (WIDTH - fm.stringWidth(title)) / 2; // Centraliza
             g2d.drawString(title, x1, HEIGHT / 2 - 50);
-
+          
             g2d.setFont(new Font("Arial", Font.PLAIN, 24));
             String subtitle = "Pressione ENTER para iniciar";
             fm = g2d.getFontMetrics(); // Pega métricas da fonte nova
@@ -354,6 +392,12 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
         if (key == KeyEvent.VK_RIGHT) {
             rightPressed = true;
         }
+        if (key == KeyEvent.VK_UP) {
+            upPressed = true;
+        }
+        if (key == KeyEvent.VK_DOWN) {
+            downPressed = true;
+        }
     }
 
     @Override
@@ -364,6 +408,12 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
         }
         if (key == KeyEvent.VK_RIGHT) {
             rightPressed = false;
+        }
+        if (key == KeyEvent.VK_UP) {
+            upPressed = false;
+        }
+        if (key == KeyEvent.VK_DOWN) {
+            downPressed = false;
         }
     }
 
