@@ -73,6 +73,8 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
     private boolean running = true;
     private boolean gameOver = false;
     private boolean introScreen = true;
+    private boolean victory = false;
+    private static final int SCORE_TO_WIN = 100;
 
     // Controles
     private boolean leftPressed = false;
@@ -278,6 +280,14 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
                 if (!isLife) {
                     score++;
                     playSound(soundPoint);
+
+
+                    // Checagem de vitória
+                    if (score >= SCORE_TO_WIN) {
+                        victory = true;
+                        running = false;
+                        if (music != null) music.stop();
+                    }
                 }
             }
 
@@ -337,15 +347,22 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
             int x2 = (WIDTH - fm.stringWidth(subtitle)) / 2; // Centraliza
             g2d.drawString(subtitle, x2, HEIGHT / 2 + 20);
 
-        } else if (gameOver) {
-            // Desenha a tela Game Over
+        } else if (gameOver || victory) {
+
+            // Desenha a tela Game Over OU Vitória
             g2d.setColor(new Color(20, 20, 20));
             g2d.fillRect(0, 0, WIDTH, HEIGHT);
-
             g2d.setColor(WHITE);
             g2d.setFont(new Font("Arial", Font.BOLD, 24));
-            String endText = "Fim de jogo! Pressione qualquer tecla para sair.";
+
+            String endText;
             String scoreText = "Pontuação final: " + score;
+
+            if (victory) {
+                endText = "VOCÊ VENCEU! Pressione qualquer tecla para sair.";
+            } else {
+                endText = "Fim de jogo! Pressione qualquer tecla para sair.";
+            }
 
             FontMetrics fm = g2d.getFontMetrics();
             int x1 = (WIDTH - fm.stringWidth(endText)) / 2;
@@ -362,8 +379,17 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
             g2d.drawImage(playerImg, playerRect.x, playerRect.y, null);
 
             // Desenha meteoros (a lógica complexa de tipos está na main)
-            for (Rectangle meteor : meteorList) {
-                g2d.drawImage(meteorImg, meteor.x, meteor.y, null);
+            for (int i = 0; i < meteorList.size(); i++) { // <-- CORRIGIDO: Usa índice 'i'
+                Rectangle meteor = meteorList.get(i);
+
+                // Decide qual imagem desenhar
+                if (meteorIsDanger.get(i)) {
+                    g2d.drawImage(meteorDangerImg, meteor.x, meteor.y, null);
+                } else if (meteorIsLife.get(i)) {
+                    g2d.drawImage(meteorLifeImg, meteor.x, meteor.y, null);
+                } else {
+                    g2d.drawImage(meteorImg, meteor.x, meteor.y, null);
+                }
             }
 
             // Desenha pontuação e vidas
@@ -375,7 +401,7 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
 
     @Override
     public void keyPressed(KeyEvent e) {
-        if (gameOver) {
+        if (gameOver || victory) {
             System.exit(0);
         }
         if (introScreen) {
