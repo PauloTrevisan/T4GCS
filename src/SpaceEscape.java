@@ -72,6 +72,7 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
     private int lives = 3;
     private boolean running = true;
     private boolean gameOver = false;
+    private boolean introScreen = true;
 
     // Controles
     private boolean leftPressed = false;
@@ -117,7 +118,6 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
 
         // Timer do jogo
         timer = new Timer(1000 / FPS, this);
-        timer.start();
     }
 
     private void loadAssets() {
@@ -219,7 +219,7 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (!running) return;
+        if (introScreen || gameOver || !running) return;
 
         // Movimento do jogador (horizontal)
         if (leftPressed && playerRect.x > 0) {
@@ -318,33 +318,27 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
         super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g;
 
-        if (!gameOver) {
-            // Desenha fundo
-            g2d.drawImage(background, 0, 0, null);
+        if (introScreen) {
+            // Desenha a tela Intro
+            g2d.setColor(new Color(20, 20, 20)); // Fundo escuro
+            g2d.fillRect(0, 0, WIDTH, HEIGHT);
 
-            // Desenha jogador
-            g2d.drawImage(playerImg, playerRect.x, playerRect.y, null);
-
-            // Desenha meteoros
-            for (int i = 0; i < meteorList.size(); i++) {
-                Rectangle meteor = meteorList.get(i);
-
-                // Decide qual imagem desenhar
-                if (meteorIsDanger.get(i)) {
-                    g2d.drawImage(meteorDangerImg, meteor.x, meteor.y, null);
-                } else if (meteorIsLife.get(i)) {
-                    g2d.drawImage(meteorLifeImg, meteor.x, meteor.y, null);
-                } else {
-                    g2d.drawImage(meteorImg, meteor.x, meteor.y, null);
-                }
-            }
-
-            // Desenha pontuação e vidas
             g2d.setColor(WHITE);
-            g2d.setFont(new Font("Arial", Font.BOLD, 24));
-            g2d.drawString("Pontos: " + score + "   Vidas: " + lives, 10, 30);
-        } else {
-            // Tela de fim de jogo
+            g2d.setFont(new Font("Arial", Font.BOLD, 48));
+
+            String title = "SPACE ESCAPE";
+            FontMetrics fm = g2d.getFontMetrics(); // Pega métricas da fonte
+            int x1 = (WIDTH - fm.stringWidth(title)) / 2; // Centraliza
+            g2d.drawString(title, x1, HEIGHT / 2 - 50);
+          
+            g2d.setFont(new Font("Arial", Font.PLAIN, 24));
+            String subtitle = "Pressione ENTER para iniciar";
+            fm = g2d.getFontMetrics(); // Pega métricas da fonte nova
+            int x2 = (WIDTH - fm.stringWidth(subtitle)) / 2; // Centraliza
+            g2d.drawString(subtitle, x2, HEIGHT / 2 + 20);
+
+        } else if (gameOver) {
+            // Desenha a tela Game Over
             g2d.setColor(new Color(20, 20, 20));
             g2d.fillRect(0, 0, WIDTH, HEIGHT);
 
@@ -359,6 +353,23 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
 
             g2d.drawString(endText, x1, HEIGHT / 2 - 20);
             g2d.drawString(scoreText, x2, HEIGHT / 2 + 20);
+
+        } else {
+            // Desenha fundo
+            g2d.drawImage(background, 0, 0, null);
+
+            // Desenha jogador
+            g2d.drawImage(playerImg, playerRect.x, playerRect.y, null);
+
+            // Desenha meteoros (a lógica complexa de tipos está na main)
+            for (Rectangle meteor : meteorList) {
+                g2d.drawImage(meteorImg, meteor.x, meteor.y, null);
+            }
+
+            // Desenha pontuação e vidas
+            g2d.setColor(WHITE);
+            g2d.setFont(new Font("Arial", Font.BOLD, 24));
+            g2d.drawString("Pontos: " + score + "   Vidas: " + lives, 10, 30);
         }
     }
 
@@ -367,7 +378,13 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
         if (gameOver) {
             System.exit(0);
         }
-
+        if (introScreen) {
+            if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                introScreen = false;
+                timer.start();
+            }
+            return;
+        }
         int key = e.getKeyCode();
         if (key == KeyEvent.VK_LEFT) {
             leftPressed = true;
