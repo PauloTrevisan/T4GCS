@@ -38,6 +38,8 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
     private static final String ASSET_METEOR_DANGER = "meteoro_perigo.png";
     private static final String ASSET_SOUND_POINT = "classic-game-action-positive-5-224402.wav";
     private static final String ASSET_SOUND_HIT = "stab-f-01-brvhrtz-224599.wav";
+    private static final String ASSET_SOUND_LIFE = "meteoro_vida_audio.wav";
+    private static final String ASSET_SOUND_DANGER_HIT = "meteoro_perigo_audio.wav";
     private static final String ASSET_MUSIC = "distorted-future-363866.wav";
 
     // Cores para fallback
@@ -55,6 +57,8 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
     // Sons
     private Clip soundPoint;
     private Clip soundHit;
+    private Clip soundLife;
+    private Clip soundDangerHit;
     private Clip music;
 
     // Variáveis de jogo
@@ -133,6 +137,8 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
         // Carrega sons
         soundPoint = loadSound(ASSET_SOUND_POINT);
         soundHit = loadSound(ASSET_SOUND_HIT);
+        soundLife = loadSound(ASSET_SOUND_LIFE);
+        soundDangerHit = loadSound(ASSET_SOUND_DANGER_HIT);
         music = loadSound(ASSET_MUSIC);
     }
 
@@ -303,10 +309,10 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
 
                 if (isLife) {
                     lives++;
-                    playSound(soundPoint);
+                    playSound(soundLife);
                 } else if (isDanger) {
                     lives -= 2;
-                    playSound(soundHit);
+                    playSound(soundDangerHit);
                 } else {
                     lives--;
                     playSound(soundHit);
