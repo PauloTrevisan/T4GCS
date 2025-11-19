@@ -23,6 +23,9 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
 
     private static final String ASSET_SOUND_POINT = "classic-game-action-positive-5-224402.wav";
     private static final String ASSET_SOUND_HIT = "stab-f-01-brvhrtz-224599.wav";
+    private static final String ASSET_SOUND_LIFE = "meteoro_vida_audio.wav";
+    private static final String ASSET_SOUND_DANGER_HIT = "meteoro_perigo_audio.wav";
+    private static final String ASSET_MUSIC = "distorted-future-363866.wav";
 
     private static final String MUSIC_PHASE_1 = "fase1.wav";
     private static final String MUSIC_PHASE_2 = "fase2.wav";
@@ -46,6 +49,8 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
 
     private Clip soundPoint;
     private Clip soundHit;
+    private Clip soundLife;
+    private Clip soundDangerHit;
     private Clip music;
 
     private Rectangle playerRect;
@@ -116,9 +121,9 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
 
         soundPoint = loadSound(ASSET_SOUND_POINT);
         soundHit = loadSound(ASSET_SOUND_HIT);
-
-        // [MEGA-METEOR ADD]
-        megaMeteorImg = loadImage("meteoro_gigante.png", Color.ORANGE, 140, 140);
+        soundLife = loadSound(ASSET_SOUND_LIFE);
+        soundDangerHit = loadSound(ASSET_SOUND_DANGER_HIT);
+        music = loadSound(ASSET_MUSIC);
     }
 
     private BufferedImage loadImage(String filename, Color fallbackColor, int width, int height) {
@@ -260,10 +265,10 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
 
                 if (isLife) {
                     lives++;
-                    playSound(soundPoint);
+                    playSound(soundLife);
                 } else if (isDanger) {
                     lives -= 2;
-                    playSound(soundHit);
+                    playSound(soundDangerHit);
                 } else {
                     lives--;
                     playSound(soundHit);
