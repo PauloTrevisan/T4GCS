@@ -27,7 +27,6 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
     private static final String ASSET_SOUND_DANGER_HIT = "meteoro_perigo_audio.wav";
     private static final String ASSET_MUSIC = "distorted-future-363866.wav";
 
-    // [ADD-MUSIC]
     private static final String MUSIC_PHASE_1 = "fase1.wav";
     private static final String MUSIC_PHASE_2 = "fase2.wav";
     private static final String MUSIC_PHASE_3 = "fase3.wav";
@@ -41,6 +40,12 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
     private BufferedImage meteorImg;
     private BufferedImage meteorLifeImg;
     private BufferedImage meteorDangerImg;
+
+    // [MEGA-METEOR ADD]
+    private BufferedImage megaMeteorImg;
+    private Rectangle megaMeteorRect = null;
+    private boolean megaMeteorActive = false;
+    private int megaMeteorSpeed = 3;
 
     private Clip soundPoint;
     private Clip soundHit;
@@ -74,7 +79,6 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
     private Timer timer;
     private Random random;
 
-    // [ADD-MUSIC]
     private int currentPhase = 1;
 
     public SpaceEscape() {
@@ -103,7 +107,6 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
             meteorIsDanger.add(false);
         }
 
-        // [ADD-MUSIC]
         playMusic(MUSIC_PHASE_1);
 
         timer = new Timer(1000 / FPS, this);
@@ -162,7 +165,6 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
         return null;
     }
 
-    // [ADD-MUSIC]
     private void playMusic(String filename) {
         try {
             if (music != null) music.stop();
@@ -177,7 +179,6 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
         }
     }
 
-    // [ADD-MUSIC]
     private void updatePhase() {
         if (score >= 30 && currentPhase == 1) {
             currentPhase = 2;
@@ -201,7 +202,7 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
     public void actionPerformed(ActionEvent e) {
         if (introScreen || gameOver || !running) return;
 
-        updatePhase(); // [ADD-MUSIC]
+        updatePhase();
 
         if (leftPressed && playerRect.x > 0) playerRect.x -= playerSpeed;
         if (rightPressed && playerRect.x + playerRect.width < WIDTH) playerRect.x += playerSpeed;
@@ -281,7 +282,43 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
             }
         }
 
+        // [MEGA-METEOR ADD]
+        updateMegaMeteor();
+
         repaint();
+    }
+
+    // [MEGA-METEOR ADD]
+    private void updateMegaMeteor() {
+
+        if (!megaMeteorActive && score >= 50) {
+            megaMeteorActive = true;
+            megaMeteorRect = new Rectangle(random.nextInt(WIDTH - 140), -200, 140, 140);
+        }
+
+        if (!megaMeteorActive) return;
+
+        megaMeteorRect.y += megaMeteorSpeed;
+
+        if (megaMeteorRect.y > HEIGHT) {
+            megaMeteorActive = false;
+            megaMeteorRect = null;
+            return;
+        }
+
+        if (megaMeteorRect.intersects(playerRect)) {
+            lives -= 3;
+            playSound(soundHit);
+
+            megaMeteorActive = false;
+            megaMeteorRect = null;
+
+            if (lives <= 0) {
+                running = false;
+                gameOver = true;
+                if (music != null) music.stop();
+            }
+        }
     }
 
     @Override
@@ -347,6 +384,11 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
                 } else {
                     g2d.drawImage(meteorImg, meteor.x, meteor.y, null);
                 }
+            }
+
+            // [MEGA-METEOR ADD]
+            if (megaMeteorActive && megaMeteorRect != null) {
+                g2d.drawImage(megaMeteorImg, megaMeteorRect.x, megaMeteorRect.y, null);
             }
 
             g2d.setColor(WHITE);
