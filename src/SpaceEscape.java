@@ -20,6 +20,7 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
     private static final String ASSET_METEOR = "meteoro001.png";
     private static final String ASSET_METEOR_LIFE = "meteoro_vida.png";
     private static final String ASSET_METEOR_DANGER = "meteoro_perigo.png";
+    private static final String ASSET_METEOR_MEGA = "mega_meteoro.png";
 
     private static final String ASSET_SOUND_POINT = "classic-game-action-positive-5-224402.wav";
     private static final String ASSET_SOUND_HIT = "stab-f-01-brvhrtz-224599.wav";
@@ -41,6 +42,8 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
     private BufferedImage meteorLifeImg;
     private BufferedImage meteorDangerImg;
 
+
+    // [MEGA-METEOR ADD]
     private BufferedImage megaMeteorImg;
     private Rectangle megaMeteorRect = null;
     private boolean megaMeteorActive = false;
@@ -92,6 +95,7 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
 
         playerRect = new Rectangle(WIDTH / 2 - 40, HEIGHT - 60, 80, 60);
 
+
         meteorList = new ArrayList<>();
         meteorSpeeds = new ArrayList<>();
         meteorIsLife = new ArrayList<>();
@@ -117,6 +121,7 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
         meteorImg = loadImage(ASSET_METEOR, RED, 40, 40);
         meteorLifeImg = loadImage(ASSET_METEOR_LIFE, Color.GREEN, 40, 40);
         meteorDangerImg = loadImage(ASSET_METEOR_DANGER, Color.DARK_GRAY, meteorDangerWidth, meteorDangerHeight);
+        megaMeteorImg = loadImage(ASSET_METEOR_MEGA, new Color(150, 0, 150), 120, 120);
 
         soundPoint = loadSound(ASSET_SOUND_POINT);
         soundHit = loadSound(ASSET_SOUND_HIT);
