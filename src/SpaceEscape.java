@@ -208,10 +208,28 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
 
         updatePhase();
 
-        if (leftPressed && playerRect.x > 0) playerRect.x -= playerSpeed;
-        if (rightPressed && playerRect.x + playerRect.width < WIDTH) playerRect.x += playerSpeed;
-        if (upPressed && playerRect.y > 0) playerRect.y -= playerSpeed;
-        if (downPressed && playerRect.y + playerRect.height < HEIGHT) playerRect.y += playerSpeed;
+        // Movimento do jogador (horizontal)
+        if (leftPressed) {
+            playerRect.x -= playerSpeed;
+        }
+        if (rightPressed) {
+            playerRect.x += playerSpeed;
+        }
+
+        // Wraparound horizontal
+        if (playerRect.x >= WIDTH) {
+            playerRect.x = -playerRect.width + 1;
+        } else if (playerRect.x + playerRect.width <= 0) {
+            playerRect.x = WIDTH - 1;
+        }
+
+        // Movimento do jogador (vertical) - COM RESTRIÇÕES
+        if (upPressed && playerRect.y > 0) {
+            playerRect.y -= playerSpeed;
+        }
+        if (downPressed && playerRect.y + playerRect.height < HEIGHT) {
+            playerRect.y += playerSpeed;
+        }
 
         for (int i = 0; i < meteorList.size(); i++) {
 
@@ -286,13 +304,11 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
             }
         }
 
-        // [MEGA-METEOR ADD]
         updateMegaMeteor();
 
         repaint();
     }
 
-    // [MEGA-METEOR ADD]
     private void updateMegaMeteor() {
 
         if (!megaMeteorActive && score >= 50) {
@@ -376,7 +392,18 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
         } else {
 
             g2d.drawImage(background, 0, 0, null);
+
+            // Desenha jogador com wraparound visual (apenas horizontal)
             g2d.drawImage(playerImg, playerRect.x, playerRect.y, null);
+
+            // Se a nave está saindo pela direita, desenha a parte que aparece na esquerda
+            if (playerRect.x + playerRect.width > WIDTH) {
+                g2d.drawImage(playerImg, playerRect.x - WIDTH, playerRect.y, null);
+            }
+            // Se a nave está saindo pela esquerda, desenha a parte que aparece na direita
+            else if (playerRect.x < 0) {
+                g2d.drawImage(playerImg, playerRect.x + WIDTH, playerRect.y, null);
+            }
 
             for (int i = 0; i < meteorList.size(); i++) {
                 Rectangle meteor = meteorList.get(i);
@@ -390,7 +417,6 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
                 }
             }
 
-            // [MEGA-METEOR ADD]
             if (megaMeteorActive && megaMeteorRect != null) {
                 g2d.drawImage(megaMeteorImg, megaMeteorRect.x, megaMeteorRect.y, null);
             }
