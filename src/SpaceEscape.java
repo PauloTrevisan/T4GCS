@@ -67,6 +67,9 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
     private int meteorDangerHeight = 60;
     private int score = 0;
     private int lives = 3;
+    private int shakeDuration = 0;
+    private int shakeX = 0;
+    private int shakeY = 0;
     private boolean running = true;
     private boolean gameOver = false;
     private boolean introScreen = true;
@@ -205,7 +208,8 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         if (introScreen || gameOver || !running) return;
-
+        
+        updateShake();
         updatePhase();
 
         // Movimento do jogador (horizontal)
@@ -291,9 +295,11 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
                 } else if (isDanger) {
                     lives -= 2;
                     playSound(soundDangerHit);
+                    startShake();
                 } else {
                     lives--;
                     playSound(soundHit);
+                    startShake();
                 }
 
                 if (lives <= 0) {
@@ -329,6 +335,7 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
         if (megaMeteorRect.intersects(playerRect)) {
             lives -= 3;
             playSound(soundHit);
+            startShake();
 
             megaMeteorActive = false;
             megaMeteorRect = null;
@@ -341,10 +348,27 @@ public class SpaceEscape extends JPanel implements ActionListener, KeyListener {
         }
     }
 
+    public void startShake() {
+        shakeDuration = 20; 
+    }
+
+    private void updateShake() {
+        if (shakeDuration > 0) {
+            shakeX = random.nextInt(11) - 5; 
+            shakeY = random.nextInt(11) - 5;
+            shakeDuration--;
+        } else {
+            shakeX = 0;
+            shakeY = 0;
+        }
+    }
+
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g;
+
+        g2d.translate(shakeX, shakeY);
 
         if (introScreen) {
 
